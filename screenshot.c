@@ -18,9 +18,13 @@
 #define CLASS_NAME       L"FullScreenShot"
 #define MUTEX_NAME       L"Local\\FullScreenShot.SingleInstance"
 #define CAPTURE_DELAY_MS 5000
+#define FOCUS_RETRY_MS   250
+#define FOCUS_MAX_TRIES  3
 #define TIMER_ID_CAPTURE 1
+#define TIMER_ID_FOCUS   2
 
 static HBITMAP g_hBitmap = NULL;
+static UINT g_focusTries = 0;
 
 static void EnableDpiAwareness(void)
 {
@@ -128,6 +132,47 @@ static void ShowError(const WCHAR *what, DWORD code)
     MessageBoxW(NULL, buf, APP_NAME, MB_ICONERROR | MB_OK);
 }
 
+static void ForceForeground(HWND hwnd)
+{
+    HWND fg;
+    DWORD fgThread;
+    DWORD thisThread = GetCurrentThreadId();
+
+    if (GetForegroundWindow() == hwnd) {
+        SetFocus(hwnd);
+        return;
+    }
+
+    fg = GetForegroundWindow();
+    fgThread = fg ? GetWindowThreadProcessId(fg, NULL) : 0;
+
+    if (fgThread && fgThread != thisThread && AttachThreadInput(fgThread, thisThread, TRUE)) {
+        BringWindowToTop(hwnd);
+        SetActiveWindow(hwnd);
+        SetForegroundWindow(hwnd);
+        AttachThreadInput(fgThread, thisThread, FALSE);
+    } else {
+        BringWindowToTop(hwnd);
+        SetActiveWindow(hwnd);
+        SetForegroundWindow(hwnd);
+    }
+
+    if (GetForegroundWindow() != hwnd) {
+        INPUT in[2];
+
+        ZeroMemory(in, sizeof(in));
+        in[0].type = INPUT_KEYBOARD;
+        in[0].ki.wVk = VK_MENU;
+        in[1].type = INPUT_KEYBOARD;
+        in[1].ki.wVk = VK_MENU;
+        in[1].ki.dwFlags = KEYEVENTF_KEYUP;
+        SendInput(2, in, sizeof(INPUT));
+        SetForegroundWindow(hwnd);
+    }
+
+    SetFocus(hwnd);
+}
+
 static void DoCapture(HWND hwnd)
 {
     int x = 0, y = 0, w = 0, h = 0;
@@ -149,10 +194,12 @@ static void DoCapture(HWND hwnd)
         return;
     }
 
+    g_focusTries = 0;
     ShowWindow(hwnd, SW_SHOW);
-    SetForegroundWindow(hwnd);
-    SetFocus(hwnd);
+    BringWindowToTop(hwnd);
+    ForceForeground(hwnd);
     InvalidateRect(hwnd, NULL, FALSE);
+    SetTimer(hwnd, TIMER_ID_FOCUS, FOCUS_RETRY_MS, NULL);
 }
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -162,8 +209,25 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
         if (wParam == TIMER_ID_CAPTURE) {
             KillTimer(hwnd, TIMER_ID_CAPTURE);
             DoCapture(hwnd);
+        } else if (wParam == TIMER_ID_FOCUS) {
+            KillTimer(hwnd, TIMER_ID_FOCUS);
+            ForceForeground(hwnd);
+            if (g_focusTries < FOCUS_MAX_TRIES && GetForegroundWindow() != hwnd) {
+                ++g_focusTries;
+                SetTimer(hwnd, TIMER_ID_FOCUS, FOCUS_RETRY_MS << g_focusTries, NULL);
+            }
         }
         return 0;
+
+    case WM_MOUSEACTIVATE:
+        return MA_ACTIVATE;
+
+    case WM_ACTIVATE:
+        if (LOWORD(wParam) != WA_INACTIVE) {
+            SetFocus(hwnd);
+            return 0;
+        }
+        break;
 
     case WM_ERASEBKGND:
         return 1;
