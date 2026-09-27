@@ -1,0 +1,55 @@
+@echo off
+REM ============================================================
+REM  compile_v2.bat -- build run_v2.exe (optimized variant)
+REM
+REM  Improvements over compile_screenshot.bat:
+REM    -O2 -s          optimize and strip symbols
+REM    -Wall -Wextra   surface unused params etc.
+REM    -finput-charset=UTF-8   source has Chinese comments; do not
+REM                    rely on the toolchain default code page
+REM    -municode       required by the wWinMain wide entry point
+REM    windres         embeds the manifest; degrades gracefully
+REM    errorlevel      a failed build must fail loudly
+REM
+REM  NOTE: keep this file ASCII-only. cmd.exe parses .bat bytes with
+REM  the OEM code page, and UTF-8 comments corrupt the parse.
+REM ============================================================
+setlocal EnableExtensions
+cd /d "%~dp0"
+
+set "RESOBJ="
+
+where windres >nul 2>nul
+if errorlevel 1 (
+    echo [warn] windres not found -- building without manifest.
+) else (
+    if not exist screenshot_v2.rc (
+        echo [warn] screenshot_v2.rc missing -- building without manifest.
+    ) else (
+        windres -i screenshot_v2.rc -o screenshot_v2_res.o
+        if errorlevel 1 (
+            echo [warn] windres failed -- building without manifest.
+            del /q screenshot_v2_res.o >nul 2>nul
+        ) else (
+            set "RESOBJ=screenshot_v2_res.o"
+        )
+    )
+)
+
+if defined RESOBJ echo [info] embedding manifest from screenshot_v2.rc
+
+gcc -o run_v2.exe screenshot_v2.c %RESOBJ% ^
+    -O2 -s -Wall -Wextra ^
+    -finput-charset=UTF-8 -fexec-charset=UTF-8 ^
+    -municode -lgdi32 -luser32 -mwindows
+
+if errorlevel 1 (
+    echo [error] build failed.
+    exit /b 1
+)
+
+echo [ok] build succeeded:
+for %%F in (run_v2.exe) do echo        run_v2.exe  %%~zF bytes
+echo.
+echo [tip] selftest:  run_v2.exe --selftest --log=selftest.log
+exit /b 0
