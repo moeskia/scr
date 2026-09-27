@@ -1,9 +1,4 @@
-# 统一以 LF 形式入库，避免 CRLF/LF 混用造成无意义 diff
 * text=auto eol=lf
-
-# 批处理必须检出为 CRLF，cmd.exe 对纯 LF 的 .bat 解析不可靠
 *.bat text eol=crlf
-
-# 二进制
 *.exe binary
 *.o   binary

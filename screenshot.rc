@@ -1,7 +1,3 @@
-/* screenshot.rc -- resource script.
- * Embeds only the manifest (DPI awareness / compatibility / asInvoker).
- * Keep this file ASCII-only: windres preprocesses it with the system code page.
- */
 #include <windows.h>
 
 1 RT_MANIFEST "screenshot.manifest"

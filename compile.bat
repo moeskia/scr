@@ -1,19 +1,4 @@
 @echo off
-REM ============================================================
-REM  compile.bat -- build run.exe
-REM
-REM  Flags:
-REM    -O2 -s          optimize and strip symbols
-REM    -Wall -Wextra   surface unused params etc.
-REM    -finput-charset=UTF-8   source has Chinese comments; do not
-REM                    rely on the toolchain default code page
-REM    -municode       required by the wWinMain wide entry point
-REM    windres         embeds the manifest; degrades gracefully
-REM    errorlevel      a failed build must fail loudly
-REM
-REM  NOTE: keep this file ASCII-only. cmd.exe parses .bat bytes with
-REM  the OEM code page, and UTF-8 comments corrupt the parse.
-REM ============================================================
 setlocal EnableExtensions
 cd /d "%~dp0"
 
@@ -48,8 +33,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [ok] build succeeded:
+echo [ok] build succeeded.
 for %%F in (run.exe) do echo        run.exe  %%~zF bytes
-echo.
-echo [tip] selftest:  run.exe --selftest --log=selftest.log
 exit /b 0

@@ -1,11 +1,6 @@
-# 构建产物 —— 可由 compile.bat 重新生成
 *.exe
 *.o
-
-# 自检与运行日志
 *.log
-
-# 编辑器 / 系统杂项
 *.swp
 *~
 Thumbs.db
