@@ -1,4 +1,4 @@
-# 构建产物 —— 可由 compile_v2.bat / compile_screenshot.bat 重新生成
+# 构建产物 —— 可由 compile.bat 重新生成
 *.exe
 *.o
 

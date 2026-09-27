@@ -1,10 +1,10 @@
-/* screenshot_v2.rc -- resource script.
+/* screenshot.rc -- resource script.
  * Embeds only the manifest (DPI awareness / compatibility / asInvoker).
  * Keep this file ASCII-only: windres preprocesses it with the system code page.
  */
 #include <windows.h>
 
-1 RT_MANIFEST "screenshot_v2.manifest"
+1 RT_MANIFEST "screenshot.manifest"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION    1,0,0,0
@@ -22,9 +22,9 @@ BEGIN
             VALUE "CompanyName",      "sandbox"
             VALUE "FileDescription",  "Full screen delayed screenshot viewer"
             VALUE "FileVersion",      "1.0.0.0"
-            VALUE "InternalName",     "run_v2"
-            VALUE "OriginalFilename", "run_v2.exe"
-            VALUE "ProductName",      "FullScreenShot V2"
+            VALUE "InternalName",     "run"
+            VALUE "OriginalFilename", "run.exe"
+            VALUE "ProductName",      "FullScreenShot"
             VALUE "ProductVersion",   "1.0.0.0"
         END
     END

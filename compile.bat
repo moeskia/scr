@@ -1,8 +1,8 @@
 @echo off
 REM ============================================================
-REM  compile_v2.bat -- build run_v2.exe (optimized variant)
+REM  compile.bat -- build run.exe
 REM
-REM  Improvements over compile_screenshot.bat:
+REM  Flags:
 REM    -O2 -s          optimize and strip symbols
 REM    -Wall -Wextra   surface unused params etc.
 REM    -finput-charset=UTF-8   source has Chinese comments; do not
@@ -23,22 +23,22 @@ where windres >nul 2>nul
 if errorlevel 1 (
     echo [warn] windres not found -- building without manifest.
 ) else (
-    if not exist screenshot_v2.rc (
-        echo [warn] screenshot_v2.rc missing -- building without manifest.
+    if not exist screenshot.rc (
+        echo [warn] screenshot.rc missing -- building without manifest.
     ) else (
-        windres -i screenshot_v2.rc -o screenshot_v2_res.o
+        windres -i screenshot.rc -o screenshot_res.o
         if errorlevel 1 (
             echo [warn] windres failed -- building without manifest.
-            del /q screenshot_v2_res.o >nul 2>nul
+            del /q screenshot_res.o >nul 2>nul
         ) else (
-            set "RESOBJ=screenshot_v2_res.o"
+            set "RESOBJ=screenshot_res.o"
         )
     )
 )
 
-if defined RESOBJ echo [info] embedding manifest from screenshot_v2.rc
+if defined RESOBJ echo [info] embedding manifest from screenshot.rc
 
-gcc -o run_v2.exe screenshot_v2.c %RESOBJ% ^
+gcc -o run.exe screenshot.c %RESOBJ% ^
     -O2 -s -Wall -Wextra ^
     -finput-charset=UTF-8 -fexec-charset=UTF-8 ^
     -municode -lgdi32 -luser32 -mwindows
@@ -49,7 +49,7 @@ if errorlevel 1 (
 )
 
 echo [ok] build succeeded:
-for %%F in (run_v2.exe) do echo        run_v2.exe  %%~zF bytes
+for %%F in (run.exe) do echo        run.exe  %%~zF bytes
 echo.
-echo [tip] selftest:  run_v2.exe --selftest --log=selftest.log
+echo [tip] selftest:  run.exe --selftest --log=selftest.log
 exit /b 0
